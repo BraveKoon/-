@@ -77,6 +77,7 @@ export default function Me() {
             syncNotifications({ enabled: ok, streak });
           }} />
           <Setting label="진동(햅틱)" value={settings.haptics} onChange={(v) => actions.updateSettings({ haptics: v })} />
+          <Setting label="3D 판정 연출 (끄면 2D 간단 보기)" value={settings.render3d} onChange={(v) => actions.updateSettings({ render3d: v })} />
           <Setting label="시간 제한 없이 판정 (접근성)" value={settings.relaxedTiming} onChange={(v) => actions.updateSettings({ relaxedTiming: v })} />
         </Card>
         <Muted size={12} weight="600">알파 단계에서는 실제 경기 영상·추적 데이터 대신 시뮬레이션 투구를 사용해요. 금전 보상·베팅 요소는 없어요.</Muted>

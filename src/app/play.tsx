@@ -7,7 +7,7 @@ import { scorePitch, TIME_LIMIT_MS } from '../core/scoring';
 import { BAD, OK, SURFACE_2 } from '../core/teams';
 import type { Call } from '../core/types';
 import { judge } from '../core/zone';
-import { PitchStage } from '../features/play/PitchStage';
+import { Stage } from '../features/play/Stage';
 import { haptic } from '../services/haptics';
 import { track } from '../services/analytics';
 import { actions, getState, useStore, type RoundPitchResult } from '../state/store';
@@ -138,7 +138,7 @@ export default function Play() {
         <Muted size={13} weight="700" center>{phase === 'decide' ? '공이 멈췄어요. 판정하세요!' : phase === 'flight' ? '투구 중…' : ' '}</Muted>
       )}
 
-      <PitchStage
+      <Stage
         pitch={pitch}
         mode={phase === 'reveal' ? 'reveal' : 'guess'}
         userCall={current?.userCall ?? null}

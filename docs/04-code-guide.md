@@ -13,6 +13,10 @@ supabase/schema.sql   서버 권위 채점·집계 (SQL)        scripts/   카�
 
 ## 4-1. 퀴즈 — `src/app/play.tsx` + `src/features/play/PitchStage.tsx`
 
+스테이지는 `src/features/play/Stage.tsx`가 고른다: **3D(`PitchStage3D`, three.js + @react-three/fiber)** 기본, 설정에서 끄거나 WebGL이 없거나 3D 렌더가 예외를 던지면(에러 경계) **2D(`PitchStage`)**. 두 구현은 같은 props, 같은 판정 데이터, 같은 오버레이(`StageOverlay`: 판정 도장·스크린리더 라벨)를 쓴다. `@react-three/fiber`는 `react-native` 진입점이 있어 같은 import로 웹=WebGL, iOS/Android=expo-gl.
+
+3D 장면 구성: `Ballpark`(구장·리본 전광판) · `Batter` · `PitchScene`(공·궤적·존). `useFrame`에서 매 프레임 `positionAt(k, T·u)`로 공 위치, 존 머티리얼 투명도(220ms), 카메라(주심 ↔ 1루 쪽 리플레이, 지수 감쇠 보간)를 갱신한다. 세로 화면에서도 구도가 같도록 카메라는 수평 시야각으로 정의(`verticalFov`).
+
 상태 머신: `flight → decide → reveal → (next) → … → result`
 - **flight(0.95s)**: 공이 릴리스→플레이트로 비행. 경로는 `samplePath()`(원근 스케일 0.16→1, 중간 휨)를 `Animated.Value.interpolate`로 네이티브 드라이버 재생. *존은 숨김*(타자 실루엣·홈플레이트만) → 판정은 공의 정지 위치 기반.
 - **decide(≤4s)**: 타이머 바(scaleX), 버튼 활성. 시간 초과는 자동 오답. 접근성 옵션 `relaxedTiming`이면 타이머/자동진행 없음(속도 보너스 0, 정확도는 동일 집계).
@@ -43,7 +47,7 @@ const score = scorePitch({ correct, edgeMarginIn: v.edgeMarginIn, rtMs: rt, comb
 ```bash
 npm install
 npm start                 # Expo (iOS/Android/Web). 서버 없이 MockApi로 동작
-npm test                  # 단위 테스트 30개
+npm test                  # 단위 테스트 37개
 npm run typecheck
 npm run verify:sql        # 로컬 PostgreSQL 16 필요: SQL ↔ TS 대조
 NODE_PATH=$(npm root -g) npx tsx scripts/render-samples.mts --clip   # 카드/클립 렌더 (Playwright, ffmpeg 필요)
@@ -52,10 +56,11 @@ NODE_PATH=$(npm root -g) npx tsx scripts/render-samples.mts --clip   # 카드/�
 ## 4-5. 검증한 것 / 못 한 것 (정직하게)
 | 구분 | 상태 |
 |---|---|
-| 순수 로직 | ✅ vitest 30개 통과 |
+| 순수 로직 | ✅ vitest 37개 통과(3D 궤적 7개 포함) |
 | SQL ↔ TS 일치 | ✅ 실제 PostgreSQL 16에서 15개 항목 통과 |
 | 타입 | ✅ `tsc --noEmit` 통과 |
 | 번들 | ✅ `expo export --platform web` 성공 |
+| 3D 스테이지 | ✅ 헤드리스 Chromium(소프트웨어 WebGL)에서 비행 중/판정/공개/결과 비교 렌더 확인, 콘솔 오류 0. ❌ expo-gl(iOS/Android) 실기기 렌더·프레임레이트 미검증 |
 | 사용자 흐름 | ✅ 헤드리스 Chromium(390×844)으로 첫 실행→자동 퀴즈→5구→결과→공유→구단 선택→탭 3개→논란 판정 투표/공개 구동, 콘솔 오류 0 |
 | iOS/Android 실기기 | ❌ **미검증**: 햅틱, 로컬 알림 예약, `view-shot` 캡처→공유 시트, `SvgXml` 폰트 렌더, 딥링크(Universal/App Links), 스토어 빌드 |
 | Supabase 연동 | ❌ 앱은 `MockApi` 사용. 스키마만 실제 PG에서 검증, RLS 정책은 Supabase 환경에서 별도 확인 필요 |

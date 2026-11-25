@@ -6,7 +6,7 @@ import { majority, strikeShare, totalVotes } from '../../core/fanVotes';
 import { BAD, OK, SURFACE_2, TEAMS, teamName } from '../../core/teams';
 import type { Call } from '../../core/types';
 import { judge } from '../../core/zone';
-import { PitchStage } from '../../features/play/PitchStage';
+import { Stage } from '../../features/play/Stage';
 import { api, type ControversyItem } from '../../services/api';
 import { haptic } from '../../services/haptics';
 import { track } from '../../services/analytics';
@@ -61,7 +61,7 @@ export default function Controversy() {
         </View>
 
         <View style={{ height: 400 }}>
-          <PitchStage
+          <Stage
             pitch={item.pitch}
             mode={voted ? 'reveal' : 'guess'}
             userCall={myVote?.call ?? null}

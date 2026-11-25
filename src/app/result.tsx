@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { liveStreak } from '../core/streak';
 import { summarizeRound } from '../core/scoring';
 import { teamName } from '../core/teams';
-import { PitchStage } from '../features/play/PitchStage';
+import { Stage } from '../features/play/Stage';
 import { useStanding } from '../features/standing';
 import { track } from '../services/analytics';
 import { requestPermission } from '../services/notifications';
@@ -96,7 +96,7 @@ export default function Result() {
             ))}
           </View>
           <View style={{ height: 380 }}>
-            <PitchStage
+            <Stage
               key={cur.pitch.id}
               pitch={cur.pitch}
               mode="reveal"

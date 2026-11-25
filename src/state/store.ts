@@ -33,6 +33,8 @@ export interface Settings {
   /** 접근성: 판정 시간 제한 해제(속도 보너스 0, 정확도는 동일하게 집계) */
   relaxedTiming: boolean;
   notifyAsked: boolean;
+  /** 3D 판정 연출(끄면 2D 간단 보기: 저사양 기기·멀미 민감 사용자용) */
+  render3d: boolean;
 }
 export interface AppState {
   hydrated: boolean;
@@ -64,7 +66,7 @@ const initial = (): AppState => ({
   votes: {},
   streak: EMPTY_STREAK,
   leagues: [],
-  settings: { notify: false, haptics: true, relaxedTiming: false, notifyAsked: false },
+  settings: { notify: false, haptics: true, relaxedTiming: false, notifyAsked: false, render3d: true },
 });
 
 let state: AppState = initial();

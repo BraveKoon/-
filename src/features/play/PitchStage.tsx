@@ -2,10 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 import Svg, { Line, Path, Rect, Circle } from 'react-native-svg';
 import { samplePath } from '../../core/pitchGen';
-import { BAD, OK, SURFACE, TEXT, TEXT_MUTED } from '../../core/teams';
-import { describePosition, formatMargin, judge, nearestPointOnRect } from '../../core/zone';
-import type { Call, Pitch } from '../../core/types';
-import { MOTION, T, useDur } from '../../ui/primitives';
+import { BAD, OK, SURFACE } from '../../core/teams';
+import { judge, nearestPointOnRect } from '../../core/zone';
+import { MOTION, useDur } from '../../ui/primitives';
+import { StageOverlay, stageLabel, type StageProps } from './StageOverlay';
+export type { StageProps };
 import { useTheme } from '../../ui/theme';
 
 const X_SPAN = 56; // ±28in
@@ -13,21 +14,6 @@ const Z_LO = 2;
 const Z_HI = 80;
 const BALL_D_IN = 2.9;
 
-export interface StageProps {
-  pitch: Pitch;
-  mode: 'guess' | 'reveal';
-  userCall?: Call | 'timeout' | null;
-  /** 값이 바뀔 때마다 비행 애니메이션 재생 */
-  flightKey: number;
-  skipFlight?: boolean;
-  onFlightEnd?: () => void;
-  /** 판정 도장(스트라이크!/볼!) 표시 */
-  showVerdict?: boolean;
-  /** 접근성/시뮬레이션 안내 */
-  simulatedBadge?: boolean;
-}
-
-const callKo = (c: Call) => (c === 'strike' ? '스트라이크' : '볼');
 
 /**
  * 포수 시점 스테이지. 판정 단계에서는 존을 숨기고(타자 실루엣 + 홈플레이트만) 공의 정지 위치로 판단하게 한다.
@@ -39,9 +25,7 @@ export function PitchStage({ pitch, mode, userCall, flightKey, skipFlight, onFli
   const [box, setBox] = useState<{ w: number; h: number } | null>(null);
   const t = useRef(new Animated.Value(0)).current;
   const zoneOpacity = useRef(new Animated.Value(0)).current;
-  const stamp = useRef(new Animated.Value(0)).current;
   const verdict = useMemo(() => judge(pitch), [pitch]);
-  const correct = userCall != null && userCall === verdict.call;
   const verdictColor = verdict.call === 'strike' ? OK : BAD;
 
   const geo = useMemo(() => {
@@ -67,20 +51,11 @@ export function PitchStage({ pitch, mode, userCall, flightKey, skipFlight, onFli
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flightKey, geo, pitch.id]);
 
-  // 공개 연출
+  // 공개 연출: 존 페이드인(도장은 StageOverlay가 220ms 뒤에)
   useEffect(() => {
-    if (mode === 'reveal') {
-      zoneOpacity.setValue(0);
-      stamp.setValue(0);
-      Animated.sequence([
-        Animated.timing(zoneOpacity, { toValue: 1, duration: dur(MOTION.base), useNativeDriver: true }),
-        Animated.timing(stamp, { toValue: 1, duration: dur(250), easing: Easing.out(Easing.back(2)), useNativeDriver: true }),
-      ]).start();
-    } else {
-      zoneOpacity.setValue(0);
-      stamp.setValue(0);
-    }
-  }, [mode, pitch.id, zoneOpacity, stamp, dur]);
+    zoneOpacity.setValue(0);
+    if (mode === 'reveal') Animated.timing(zoneOpacity, { toValue: 1, duration: dur(MOTION.base), useNativeDriver: true }).start();
+  }, [mode, pitch.id, zoneOpacity, dur]);
 
   const ball = useMemo(() => {
     if (!geo) return null;
@@ -95,12 +70,7 @@ export function PitchStage({ pitch, mode, userCall, flightKey, skipFlight, onFli
     };
   }, [geo, pitch, t]);
 
-  const label =
-    mode === 'guess'
-      ? `투구 도착. ${describePosition(pitch)}.`
-      : `ABS 판정 ${callKo(verdict.call)}. ${formatMargin(verdict.edgeMarginIn)}. ${userCall && userCall !== 'timeout' ? `내 판정 ${callKo(userCall)}, ${correct ? '정답' : '오답'}.` : '시간 초과.'}`;
-
-  const stampScale = stamp.interpolate({ inputRange: [0, 1], outputRange: [1.5, 1] });
+  const label = stageLabel(pitch, mode, userCall);
 
   return (
     <View style={styles.wrap} onLayout={(e: LayoutChangeEvent) => setBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })} accessible accessibilityLabel={label} accessibilityLiveRegion="polite">
@@ -163,24 +133,7 @@ export function PitchStage({ pitch, mode, userCall, flightKey, skipFlight, onFli
             }}
           />
 
-          {/* 판정 도장 */}
-          {mode === 'reveal' && showVerdict !== false && (
-            <Animated.View pointerEvents="none" style={[styles.stamp, { opacity: stamp, transform: [{ scale: stampScale }] }]}>
-              <T size={13} weight="800" color={TEXT_MUTED}>ABS 판정</T>
-              <T size={46} weight="900" color={verdictColor} maxScale={1.2}>{callKo(verdict.call)}</T>
-              <T size={14} weight="700" color={TEXT_MUTED}>{formatMargin(verdict.edgeMarginIn)}</T>
-              {userCall ? (
-                <T size={16} weight="900" color={correct ? OK : BAD}>
-                  {userCall === 'timeout' ? '⏱ 시간 초과' : `${correct ? '✓ 정답' : '✕ 오답'} · 내 판정 ${callKo(userCall)}`}
-                </T>
-              ) : null}
-            </Animated.View>
-          )}
-          {simulatedBadge ? (
-            <View style={styles.badge} pointerEvents="none">
-              <T size={11} weight="800" color={TEXT_MUTED}>시뮬레이션 투구</T>
-            </View>
-          ) : null}
+          <StageOverlay pitch={pitch} mode={mode} userCall={userCall} showVerdict={showVerdict} simulatedBadge={simulatedBadge} />
         </>
       ) : null}
     </View>
@@ -189,6 +142,4 @@ export function PitchStage({ pitch, mode, userCall, flightKey, skipFlight, onFli
 
 const styles = StyleSheet.create({
   wrap: { flex: 1, borderRadius: 24, overflow: 'hidden', minHeight: 260 },
-  stamp: { position: 'absolute', top: 14, left: 0, right: 0, alignItems: 'center', gap: 2 },
-  badge: { position: 'absolute', bottom: 10, right: 12, backgroundColor: '#0B0F14AA', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 },
 });
