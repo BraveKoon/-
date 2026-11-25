@@ -1,46 +1,75 @@
 name: Release
 
-# main에 머지된 커밋에 vX.Y.Z 태그를 푸시하면 실행된다 (절차: docs/RELEASE.md)
+# 자동 릴리즈: main에 머지되면 package.json 버전(vX.Y.Z)의 GitHub Release가 있는지 보고, 없으면 태그와 릴리즈를 만든다.
+#   → "버전을 올린 PR을 main에 머지" = 릴리즈. 이미 있는 버전이면 아무것도 하지 않는다.
+# 수동: Actions 탭에서 workflow_dispatch로 다시 실행 가능(같은 규칙). 절차: docs/RELEASE.md
 on:
   push:
-    tags: ['v*.*.*']
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - id: ver
+        name: 릴리즈 대상 버전 확인
+        run: |
+          V=$(node -p "require('./package.json').version")
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          if gh release view "v$V" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "v$V 릴리즈가 이미 있어 건너뜁니다."
+            echo "skip=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "v$V 릴리즈를 만듭니다."
+            echo "skip=0" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.ver.outputs.skip == '0'
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - name: 버전·CHANGELOG 일치 확인
-        run: node scripts/release.mjs check "${GITHUB_REF_NAME#v}"
-      - name: 타입 검사 + 단위 테스트
+      - if: steps.ver.outputs.skip == '0'
+        run: npm ci
+      - if: steps.ver.outputs.skip == '0'
+        name: 버전·CHANGELOG 일치 확인
+        run: node scripts/release.mjs check "${{ steps.ver.outputs.version }}"
+      - if: steps.ver.outputs.skip == '0'
+        name: 타입 검사 + 단위 테스트
         run: npm run typecheck && npm test
-      - name: 웹 빌드
+      - if: steps.ver.outputs.skip == '0'
+        name: 웹 빌드
         run: |
           npx expo export --platform web --output-dir dist
-          (cd dist && zip -qr "../strzone-web-${GITHUB_REF_NAME}.zip" .)
+          (cd dist && zip -qr "../strzone-web-v${{ steps.ver.outputs.version }}.zip" .)
         env:
           EXPO_OFFLINE: '1'
           CI: '1'
-      - name: 릴리즈 노트 (CHANGELOG에서 추출)
-        run: node scripts/release.mjs notes "${GITHUB_REF_NAME#v}" > notes.md
-      - name: GitHub Release 생성
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - if: steps.ver.outputs.skip == '0'
+        name: 릴리즈 노트 (CHANGELOG에서 추출)
+        run: node scripts/release.mjs notes "${{ steps.ver.outputs.version }}" > notes.md
+      - if: steps.ver.outputs.skip == '0'
+        name: 태그 + GitHub Release 생성
         run: |
+          V="${{ steps.ver.outputs.version }}"
           PRE=""
-          case "$GITHUB_REF_NAME" in v0.*) PRE="--prerelease" ;; esac
-          gh release create "$GITHUB_REF_NAME" $PRE \
-            --title "스트존 $GITHUB_REF_NAME" \
+          case "$V" in 0.*) PRE="--prerelease" ;; esac
+          gh release create "v$V" $PRE \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "스트존 v$V" \
             --notes-file notes.md \
-            "strzone-web-${GITHUB_REF_NAME}.zip" \
+            "strzone-web-v$V.zip" \
             docs/samples/round-story.png \
             docs/samples/controversy-story.png \
             docs/samples/controversy-clip.mp4

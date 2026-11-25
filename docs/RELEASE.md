@@ -13,13 +13,13 @@
 | 데이터/저장 형식 호환 깨짐, 정식 출시 | MAJOR `1.0.0` (정식 출시 = 1.0.0, 개막 목표) |
 `0.x` 태그는 GitHub에서 **프리릴리즈**로 표시된다.
 
-## 3. 릴리즈 만들기
+## 3. 릴리즈 만들기 (자동)
 1. `Unreleased`에 내용이 쌓이면 릴리즈 PR을 만든다: `node scripts/release.mjs bump X.Y.Z` → `package.json`·`app.json` 버전과 CHANGELOG 섹션(날짜는 KST)이 함께 바뀐다.
-2. 릴리즈 PR이 `main`에 머지되면, **그 머지 커밋에 `vX.Y.Z` 태그를 푸시**한다.
-3. 태그 푸시 → `.github/workflows/release.yml`:
-   - 버전 3곳 일치 확인(`release.mjs check`) → 타입 검사·테스트 → 웹 빌드 zip
-   - CHANGELOG 해당 섹션을 본문으로 **GitHub Release 생성**, 첨부: 웹 빌드 zip · 공유 카드 샘플 · 논란 판정 클립
-4. 실패하면 태그를 지우지 말고 원인을 고쳐 **PATCH 버전으로 다시** 릴리즈한다(태그 재사용 금지).
+2. 릴리즈 PR을 `main`에 머지하면 `.github/workflows/release.yml`이 자동 실행된다:
+   - `package.json` 버전의 GitHub Release가 이미 있으면 **아무것도 하지 않음**(일반 기능 PR 머지는 릴리즈를 만들지 않는다)
+   - 없으면: 버전 3곳 일치 확인(`release.mjs check`) → 타입 검사·테스트 → 웹 빌드 zip → 머지 커밋에 `vX.Y.Z` **태그 생성 + GitHub Release**(본문 = CHANGELOG 해당 섹션, 첨부 = 웹 빌드 zip · 공유 카드 샘플 · 논란 판정 클립). `0.x`는 프리릴리즈.
+3. 태그는 워크플로가 만든다(개발 세션에서 태그를 직접 푸시하지 않음). 재실행이 필요하면 Actions → Release → *Run workflow*.
+4. 실패하면 태그/릴리즈를 지우지 말고 원인을 고쳐 **PATCH 버전으로 다시** 릴리즈한다(버전 재사용 금지).
 
 ## 4. 스토어 배포 (iOS/Android) — 사람의 준비가 필요한 단계
 자동화(`.github/workflows/eas-build.yml`, 수동 실행)는 만들어 두었지만, 아래가 준비되기 전에는 **경고만 남기고 건너뛴다**.
