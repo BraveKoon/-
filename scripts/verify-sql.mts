@@ -1,6 +1,7 @@
 /**
  * supabase/schema.sql 을 실제 PostgreSQL에 올려, TS 구현(src/core)과 SQL 구현이 같은 결과를 내는지 대조 검증한다.
  *   npx tsx scripts/verify-sql.mts        (로컬 PostgreSQL 16 필요; 없으면 종료코드 2)
+ *   PG_BASE_URL=postgresql://postgres:postgres@localhost:5432 npx tsx scripts/verify-sql.mts   (CI)
  * 검증 항목: ① 존 판정 ② 점수식 ③ 구단 랭킹(캡+수축) ④ 구단 기여도 ⑤ submit_answer 서버 채점/콤보/스트릭 ⑥ 리그 ⑦ RLS(정답 은닉)
  */
 import { execFileSync } from 'node:child_process';
@@ -16,8 +17,16 @@ import { kstWeekKey } from '../src/core/dates';
 const DB = 'strzone_verify';
 const sh = (cmd: string, args: string[], input?: string) =>
   execFileSync(cmd, args, { encoding: 'utf8', input, stdio: ['pipe', 'pipe', 'pipe'] });
+/**
+ * 접속 방식: PG_BASE_URL(예: postgresql://postgres:postgres@localhost:5432)이 있으면 URL로(CI 서비스 컨테이너),
+ * 없으면 로컬 클러스터에 postgres 계정 peer 인증으로.
+ */
+const BASE_URL = process.env.PG_BASE_URL?.replace(/\/$/, '');
 const psql = (db: string, sql: string) =>
-  sh('runuser', ['-u', 'postgres', '--', 'psql', '-X', '-q', '-t', '-A', '-v', 'ON_ERROR_STOP=1', '-d', db], sql).trim();
+  (BASE_URL
+    ? sh('psql', ['-X', '-q', '-t', '-A', '-v', 'ON_ERROR_STOP=1', `${BASE_URL}/${db}`], sql)
+    : sh('runuser', ['-u', 'postgres', '--', 'psql', '-X', '-q', '-t', '-A', '-v', 'ON_ERROR_STOP=1', '-d', db], sql)
+  ).trim();
 const q = (sql: string) => psql(DB, sql);
 const j = <T = any>(sql: string): T => JSON.parse(q(sql));
 /** auth.uid()를 uid로 맞춘 같은 세션에서 sql 실행, 마지막 결과 줄 반환 */
@@ -31,7 +40,7 @@ const check = (name: string, ok: boolean, detail = '') => {
 };
 
 try {
-  try { sh('pg_ctlcluster', ['16', 'main', 'start']); } catch { /* 이미 실행 중일 수 있음 */ }
+  if (!BASE_URL) { try { sh('pg_ctlcluster', ['16', 'main', 'start']); } catch { /* 이미 실행 중일 수 있음 */ } }
   for (let i = 0; i < 20; i++) { try { psql('postgres', 'select 1'); break; } catch { sh('sleep', ['0.5']); } }
 } catch (e) { console.error('PostgreSQL을 시작할 수 없어요:', (e as Error).message); process.exit(2); }
 
