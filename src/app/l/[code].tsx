@@ -11,7 +11,7 @@ import { Button, Card, Muted, Screen, T } from '../../ui/primitives';
 import { useTheme } from '../../ui/theme';
 import { kstWeekKey } from '../../core/dates';
 
-/** 초대 링크 착지 + 리그 순위표. https://strzone.app/l/CODE 또는 strzone://l/CODE */
+/** 초대 링크 착지 + 리그 순위표. 웹 착지(WEB_BASE_URL/l/?c=CODE)가 strzone://l/CODE 로 이 화면을 연다 */
 export default function League() {
   const insets = useSafeAreaInsets();
   const th = useTheme();

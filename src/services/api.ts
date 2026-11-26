@@ -85,5 +85,4 @@ const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // 0/O, 1/I/L 제외
 export function newLeagueCode(): string {
   return Array.from({ length: 6 }, () => CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)]).join('');
 }
-export const inviteUrl = (code: string) => `https://strzone.app/l/${code}`;
-export const appInviteUrl = (anonId: string) => `https://strzone.app/?ref=${encodeURIComponent(anonId)}`;
+export { leagueInviteUrl as inviteUrl } from '../config';

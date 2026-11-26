@@ -42,7 +42,7 @@ const round = buildQuickRound('demo');
 const wrongAt = 3;
 const roundModel: RoundCardModel = {
   kind: 'round', nickname: '민수', theme, accuracyPct: 80, correct: 4, total: 5, score: 872, streak: 7,
-  teamRank: 3, contribution: 4.2, weekLabel: '3.22 ~ 3.28', inviteText: '나도 판정해보기 · strzone.app',
+  teamRank: 3, contribution: 4.2, weekLabel: '3.22 ~ 3.28', inviteText: '나도 판정해보기 · 앱스토어 「스트존」',
   simulated: true,
   dots: round.map((p, i) => toDot(p, zoneFor(p.batterHeightCm), i !== wrongAt)),
 };
@@ -54,7 +54,7 @@ const ctrModel: ControversyCardModel = {
   userCall: verdict.call === 'strike' ? 'ball' : 'strike',
   strikeSharePct: Math.round(strikeShare(totalVotes(votes)) * 100),
   marginText: formatMargin(verdict.edgeMarginIn), situation: `${pitch.label ?? ''} · 시뮬레이션`,
-  dayLabel: '3월 27일', inviteText: '나도 판정해보기 · strzone.app', simulated: true,
+  dayLabel: '3월 27일', inviteText: '나도 판정해보기 · 앱스토어 「스트존」', simulated: true,
 };
 
 const html = (svg: string) =>

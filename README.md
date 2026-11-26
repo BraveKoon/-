@@ -30,7 +30,7 @@
 3. [데이터 설계 — 투구 데이터 · 점수식 · 구단 랭킹 집계](docs/03-data-design.md) · SQL: [`supabase/schema.sql`](supabase/schema.sql)
 4. [핵심 화면 코드 안내(퀴즈 · 결과 비교 · 공유 카드)](docs/04-code-guide.md)
 5. [개막 전 로드맵 · 성공/실패 기준](docs/05-roadmap-kpi.md)
-+ [가정 · 리스크 · 열린 질문](docs/06-assumptions-risks.md) · [릴리즈 절차](docs/RELEASE.md) · [CHANGELOG](CHANGELOG.md)
++ [가정 · 리스크 · 열린 질문](docs/06-assumptions-risks.md) · [릴리즈 절차](docs/RELEASE.md) · [**App Store 출시 가이드**](docs/APP_STORE.md) · [CHANGELOG](CHANGELOG.md)
 
 ## 실행
 ```bash
