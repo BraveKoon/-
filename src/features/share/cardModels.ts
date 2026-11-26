@@ -7,7 +7,7 @@ import { toDot, type ControversyCardModel, type RoundCardModel } from '../../cor
 import type { Call, Pitch } from '../../core/types';
 import type { RoundRecord } from '../../state/store';
 
-export const INVITE_TEXT = '나도 판정해보기 · strzone.app';
+export const INVITE_TEXT = '나도 판정해보기 · 앱스토어 「스트존」';
 
 export function roundCardModel(args: {
   round: RoundRecord;

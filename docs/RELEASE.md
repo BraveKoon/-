@@ -21,10 +21,7 @@
 3. 태그는 워크플로가 만든다(개발 세션에서 태그를 직접 푸시하지 않음). 재실행이 필요하면 Actions → Release → *Run workflow*.
 4. 실패하면 태그/릴리즈를 지우지 말고 원인을 고쳐 **PATCH 버전으로 다시** 릴리즈한다(버전 재사용 금지).
 
-## 4. 스토어 배포 (iOS/Android) — 사람의 준비가 필요한 단계
-자동화(`.github/workflows/eas-build.yml`, 수동 실행)는 만들어 두었지만, 아래가 준비되기 전에는 **경고만 남기고 건너뛴다**.
-1. Expo 계정에서 `npx eas-cli init` → `app.json`에 `extra.eas.projectId` 기록
-2. GitHub 저장소 시크릿 `EXPO_TOKEN` 등록
-3. Apple Developer Program / Google Play Console 계정, 서명 자격증명(`eas credentials`)
-4. 스토어 메타데이터·개인정보 처리방침·심사 문구(시뮬레이션 고지, 베팅/도박 아님)
-스토어 제출은 심사·과금·법적 책임이 걸린 외부 행위라 **자동으로 하지 않고**, 준비되면 수동 실행(`preview` → `production`)한다.
+## 4. 스토어 배포 (iOS)
+- 새 버전 GitHub Release가 만들어지면 Release 워크플로가 이어서 **`app-store.yml`(iOS 빌드 → TestFlight 업로드)** 을 호출한다. `EXPO_TOKEN`이 없으면 경고만 남기고 건너뛴다.
+- **심사 제출·출시는 자동으로 하지 않는다**(되돌리기 어려운 외부 행위). App Store Connect에서 사람이 한다.
+- 최초 1회 준비(Expo 토큰, 인증서, App Store Connect 앱 등록)와 심사 체크리스트: [docs/APP_STORE.md](APP_STORE.md)

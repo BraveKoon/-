@@ -1,0 +1,48 @@
+name: Pages (개인정보처리방침·지원·초대 페이지)
+
+# site/ 폴더를 GitHub Pages로 배포 → https://bravekoon.github.io/-/
+# 최초 1회: 저장소 Settings → Pages → Build and deployment → Source: "GitHub Actions" (켜기 전에는 경고만 남기고 건너뜀)
+on:
+  push:
+    branches: [main]
+    paths: ['site/**', '.github/workflows/pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: chk
+        name: Pages 활성화 확인
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh api "repos/$GITHUB_REPOSITORY/pages" >/dev/null 2>&1; then
+            echo "ok=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::GitHub Pages가 꺼져 있어 배포를 건너뜁니다. Settings → Pages → Source를 'GitHub Actions'로 설정하세요."
+            echo "ok=0" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.chk.outputs.ok == '1'
+        uses: actions/checkout@v4
+      - if: steps.chk.outputs.ok == '1'
+        uses: actions/configure-pages@v5
+      - if: steps.chk.outputs.ok == '1'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - if: steps.chk.outputs.ok == '1'
+        id: deploy
+        uses: actions/deploy-pages@v4

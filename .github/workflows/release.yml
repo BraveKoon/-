@@ -18,6 +18,8 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-latest
+    outputs:
+      created: ${{ steps.ver.outputs.skip == '0' }}
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -73,3 +75,12 @@ jobs:
             docs/samples/round-story.png \
             docs/samples/controversy-story.png \
             docs/samples/controversy-clip.mp4
+
+  # 새 버전 릴리즈가 만들어졌으면 iOS 빌드 → TestFlight 업로드 (EXPO_TOKEN 없으면 경고 후 건너뜀)
+  app-store:
+    needs: release
+    if: needs.release.outputs.created == 'true'
+    uses: ./.github/workflows/app-store.yml
+    with:
+      submit: true
+    secrets: inherit

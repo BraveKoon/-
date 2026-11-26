@@ -1,0 +1,54 @@
+{
+  "configVersion": 0,
+  "apple": {
+    "categories": ["SPORTS", "ENTERTAINMENT"],
+    "release": {
+      "automaticRelease": false
+    },
+    "advisory": {
+      "alcoholTobaccoOrDrugUseOrReferences": "NONE",
+      "contests": "NONE",
+      "gamblingSimulated": "NONE",
+      "horrorOrFearThemes": "NONE",
+      "matureOrSuggestiveThemes": "NONE",
+      "medicalOrTreatmentInformation": "NONE",
+      "profanityOrCrudeHumor": "NONE",
+      "sexualContentGraphicAndNudity": "NONE",
+      "sexualContentOrNudity": "NONE",
+      "violenceCartoonOrFantasy": "NONE",
+      "violenceRealistic": "NONE",
+      "violenceRealisticProlongedGraphicOrSadistic": "NONE",
+      "gambling": false,
+      "unrestrictedWebAccess": false,
+      "kidsAgeBand": null,
+      "ageRatingOverride": "NONE",
+      "koreaAgeRatingOverride": "NONE",
+      "advertising": false,
+      "lootBox": false,
+      "messagingAndChat": false,
+      "userGeneratedContent": false
+    },
+    "info": {
+      "ko": {
+        "title": "스트존 - 야구 판정 구단 대항전",
+        "subtitle": "볼·스트라이크 맞히고 우리 구단 1위로",
+        "promoText": "주심 시점 3D로 공 하나를 판정하세요. ABS 정답이 바로 공개되고, 내 정확도가 응원 구단의 주간 순위에 더해집니다.",
+        "description": "우리 구단 팬이 심판보다 정확하다!\n\n스트존은 날아오는 공 하나를 보고 스트라이크인지 볼인지 판정하는 야구 판정 앱입니다. 한 판은 5구, 약 30초. 가입 없이 바로 시작할 수 있어요.\n\n■ 주심의 눈으로 판정\n마운드에서 날아오는 공을 주심 시점 3D로 보고, 공이 멈춘 순간 판정하세요. 정답은 ABS 존 규칙으로 바로 공개되고, 카메라가 돌아가며 존 박스와 궤적을 리플레이로 보여줍니다.\n\n■ 주간 구단 대항전\n응원 구단을 고르면 내 판정 정확도가 구단의 주간 순위에 반영돼요. 한 사람이 순위를 좌우하지 못하도록 공정하게 집계하고, 매주 월요일 새 시즌이 시작됩니다.\n\n■ 오늘의 논란 판정\n매일 경계선에 걸친 투구 3개. 팬 투표와 ABS 판정을 비교해 보세요. 우리 구단 팬들은 어떻게 봤을까요?\n\n■ 카드 한 장으로 공유\n정확도, 연속 기록, 구단 기여도를 인스타그램 스토리·카카오톡용 카드로 만들어 공유하세요.\n\n■ 친구와 미니 리그\n초대 코드 하나로 친구들끼리 이번 주 순위를 겨뤄요.\n\n안내\n· 현재 투구와 팬 투표는 시뮬레이션 데이터이며, 화면과 공유 카드에 항상 표시됩니다.\n· 금전 보상, 경품, 베팅 요소가 없습니다.\n· 개인정보를 서버로 수집하지 않으며, 기록은 기기 안에만 저장됩니다.",
+        "keywords": ["야구", "프로야구", "판정", "심판", "스트라이크", "볼", "ABS", "스트라이크존", "퀴즈", "응원", "구단", "주심"],
+        "releaseNotes": "스트존 첫 출시! 주심 시점 3D 판정, 주간 구단 대항전, 오늘의 논란 판정, 공유 카드, 친구 미니 리그를 만나보세요.",
+        "marketingUrl": "https://bravekoon.github.io/-/",
+        "supportUrl": "https://bravekoon.github.io/-/support/",
+        "privacyPolicyUrl": "https://bravekoon.github.io/-/privacy/",
+        "screenshots": {
+          "APP_IPHONE_67": [
+            "store/screenshots/ko/iphone-6.9/01-judge.png",
+            "store/screenshots/ko/iphone-6.9/02-reveal.png",
+            "store/screenshots/ko/iphone-6.9/03-result.png",
+            "store/screenshots/ko/iphone-6.9/04-ranking.png",
+            "store/screenshots/ko/iphone-6.9/05-controversy.png"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -8,7 +8,8 @@ import { controversyCardModel, roundCardModel } from '../features/share/cardMode
 import { shareCardImage } from '../features/share/exportCard';
 import { ShareCardView } from '../features/share/ShareCardView';
 import { useStanding } from '../features/standing';
-import { api, appInviteUrl } from '../services/api';
+import { api } from '../services/api';
+import { appInviteUrl } from '../config';
 import { track } from '../services/analytics';
 import { getState, useStore } from '../state/store';
 import { Button, Chip, Muted, Screen, T } from '../ui/primitives';
@@ -59,7 +60,7 @@ export default function ShareScreen() {
 
   const onInvite = async () => {
     track('invite_sent', { source: 'share' });
-    await Share.share({ message: `스트존에서 같이 판정해요! 나는 ${model?.kind === 'round' ? `${model.accuracyPct}%` : '논란 판정'} 맞혔어. ${appInviteUrl(getState().anonId)}` }).catch(() => {});
+    await Share.share({ message: `스트존에서 같이 판정해요! 나는 ${model?.kind === 'round' ? `${model.accuracyPct}%` : '논란 판정'} 맞혔어. ${appInviteUrl()}` }).catch(() => {});
   };
 
   return (

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스트존 리그 초대</title>
+<meta property="og:title" content="스트존 미니 리그에 초대받았어요">
+<meta property="og:description" content="볼·스트라이크 판정 정확도로 친구들과 이번 주 순위를 겨뤄요">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body><main>
+  <div class="brand">STRZONE · 미니 리그 초대</div>
+  <h1>리그에 초대받았어요</h1>
+  <div class="card" style="text-align:center">
+    <div class="muted">초대 코드</div>
+    <div class="code" id="code">------</div>
+  </div>
+  <a class="btn" id="open" href="strzone://">스트존 앱에서 열기</a>
+  <a class="btn secondary" id="store" href="../">앱 설치하기</a>
+  <div class="card">
+    <p><strong>앱을 설치한 뒤에는</strong><br>[구단 랭킹 → 내 리그 → 초대 코드로 참여]에 위 코드를 입력하세요. 가입은 필요 없어요.</p>
+  </div>
+  <footer><a href="../privacy/">개인정보처리방침</a> · <a href="../support/">고객지원</a></footer>
+</main>
+<script>
+  // 코드 형식: 6자, 혼동 문자(0/O, 1/I/L) 제외 — 앱의 newLeagueCode()와 동일
+  var raw = new URLSearchParams(location.search).get('c') || '';
+  var code = /^[A-HJ-KM-NP-Z2-9]{6}$/.test(raw.toUpperCase()) ? raw.toUpperCase() : '';
+  document.getElementById('code').textContent = code || '코드 없음';
+  if (code) document.getElementById('open').href = 'strzone://l/' + code;
+  else document.getElementById('open').style.display = 'none';
+</script>
+</body>
+</html>

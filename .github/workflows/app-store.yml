@@ -1,0 +1,101 @@
+name: App Store (iOS 빌드 → TestFlight 업로드)
+
+# EAS로 iOS 프로덕션 빌드를 만들고 App Store Connect(TestFlight)에 업로드한다.
+#  - 릴리즈 워크플로가 새 버전을 만들면 자동 호출(workflow_call), Actions 탭에서 수동 실행도 가능.
+#  - 심사 제출(Submit for Review)과 출시는 하지 않는다 → App Store Connect에서 사람이 한다(docs/APP_STORE.md).
+#  - 필요한 설정(없으면 경고만 남기고 건너뜀):
+#      secrets.EXPO_TOKEN   (필수) Expo 액세스 토큰
+#      vars.ASC_APP_ID      (업로드용) App Store Connect 앱의 Apple ID(숫자)
+#      secrets.ASC_API_KEY_P8 / ASC_KEY_ID / ASC_ISSUER_ID / APPLE_TEAM_ID
+#                           (선택) API 키를 EAS에 저장하지 않았다면 여기로 전달
+on:
+  workflow_dispatch:
+    inputs:
+      submit:
+        description: 빌드 후 TestFlight에 업로드
+        type: boolean
+        default: true
+  workflow_call:
+    inputs:
+      submit:
+        type: boolean
+        default: true
+
+concurrency:
+  group: app-store
+  cancel-in-progress: false
+
+env:
+  EAS_CLI: eas-cli@27.11.0
+
+jobs:
+  ios:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      ASC_APP_ID: ${{ vars.ASC_APP_ID }}
+      ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    steps:
+      - id: chk
+        name: 준비 상태 확인
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::warning::EXPO_TOKEN 시크릿이 없어 iOS 빌드를 건너뜁니다 (docs/APP_STORE.md 2단계)"
+            echo "ok=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=1" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.chk.outputs.ok == '1'
+        uses: actions/checkout@v4
+      - if: steps.chk.outputs.ok == '1'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - if: steps.chk.outputs.ok == '1'
+        run: npm ci
+      - if: steps.chk.outputs.ok == '1'
+        name: App Store Connect API 키 연결(선택)
+        run: |
+          if [ -n "$ASC_API_KEY_P8" ] && [ -n "$ASC_KEY_ID" ]; then
+            printf '%s\n' "$ASC_API_KEY_P8" > "$RUNNER_TEMP/asc-api-key.p8"
+            {
+              echo "EXPO_ASC_API_KEY_PATH=$RUNNER_TEMP/asc-api-key.p8"
+              echo "EXPO_ASC_KEY_ID=$ASC_KEY_ID"
+              [ -n "$ASC_ISSUER_ID" ] && echo "EXPO_ASC_ISSUER_ID=$ASC_ISSUER_ID"
+              [ -n "$APPLE_TEAM_ID" ] && echo "EXPO_APPLE_TEAM_ID=$APPLE_TEAM_ID"
+            } >> "$GITHUB_ENV"
+            echo "API 키를 시크릿에서 사용합니다."
+          else
+            echo "API 키 시크릿이 없어 EAS에 저장된 키를 사용합니다."
+          fi
+      - if: steps.chk.outputs.ok == '1'
+        name: EAS 프로젝트 연결
+        run: |
+          if node -e "process.exit(require('./app.json').expo?.extra?.eas?.projectId ? 0 : 1)"; then
+            echo "app.json의 projectId 사용"
+          else
+            npx --yes "$EAS_CLI" init --non-interactive --force
+          fi
+      - if: steps.chk.outputs.ok == '1'
+        name: submit 프로필 채우기(커밋하지 않음)
+        run: node scripts/eas-submit-profile.mjs
+      - if: steps.chk.outputs.ok == '1'
+        id: build
+        name: iOS 프로덕션 빌드 (EAS, 완료까지 대기)
+        run: |
+          npx --yes "$EAS_CLI" build --platform ios --profile production --non-interactive --wait --json > build.json
+          BUILD_ID=$(node -e "const b=require('./build.json'); console.log((Array.isArray(b)?b[0]:b).id)")
+          echo "id=$BUILD_ID" >> "$GITHUB_OUTPUT"
+          echo "### iOS 빌드 완료: \`$BUILD_ID\`" >> "$GITHUB_STEP_SUMMARY"
+      - if: steps.chk.outputs.ok == '1' && inputs.submit && env.ASC_APP_ID != ''
+        name: TestFlight 업로드 (EAS Submit)
+        run: |
+          npx --yes "$EAS_CLI" submit --platform ios --profile production --id "${{ steps.build.outputs.id }}" --non-interactive --wait
+          echo "### TestFlight 업로드 완료 — App Store Connect에서 처리(약 10~30분) 후 테스트할 수 있습니다" >> "$GITHUB_STEP_SUMMARY"
+      - if: steps.chk.outputs.ok == '1' && inputs.submit && env.ASC_APP_ID == ''
+        run: echo "::warning::vars.ASC_APP_ID가 없어 업로드를 건너뜁니다. 빌드는 EAS 대시보드에 있습니다."

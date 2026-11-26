@@ -21,10 +21,11 @@ export default function Play() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const th = useTheme();
-  const { first } = useLocalSearchParams<{ first?: string }>();
+  // seed: 같은 5구를 재현(스토어 스크린샷·버그 재현용). 없으면 매 판 새로 생성
+  const { first, seed: seedParam } = useLocalSearchParams<{ first?: string; seed?: string }>();
   const relaxed = useStore((s) => s.settings.relaxedTiming);
 
-  const seed = useRef(`${getState().anonId}:${Date.now()}`).current;
+  const seed = useRef(seedParam || `${getState().anonId}:${Date.now()}`).current;
   const roundId = useRef(`r-${Date.now().toString(36)}`).current;
   const pitches = useMemo(() => buildQuickRound(seed), [seed]);
 
